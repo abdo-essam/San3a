@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.paris_2.san3a.presentation.AppLocaleState
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -55,6 +56,7 @@ class UserPreferencesLocalDataStoreImpl(
 
     override suspend fun updateAppLanguage(newLanguage: String): Boolean {
         dataStore.setValue(LOCAL_LANGUAGE, newLanguage)
+        AppLocaleState.updateLocale(newLanguage)
         return true
     }
 

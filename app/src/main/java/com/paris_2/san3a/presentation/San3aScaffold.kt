@@ -55,6 +55,13 @@ fun San3aScaffold(
 ) {
     val context = LocalContext.current
     val language = mainViewModel.getLastSelectedAppLanguage().collectAsStateWithLifecycle("en")
+
+    // Initialize AppLocaleState
+    LaunchedEffect(language.value) {
+        AppLocaleState.updateLocale(language.value)
+    }
+
+
     val configuration = if (language.value == "en") {
         updatedConfiguration(Language.ENGLISH)
     } else {
@@ -106,54 +113,56 @@ fun San3aScaffold(
     }
     val scope = rememberCoroutineScope()
 
-    CompositionLocalProvider(
-        LocalLayoutDirection provides localDirection,
-        LocalConfiguration provides configuration,
-        LocalContext provides localizedContext
-    ) {
-        San3aTheme(isDarkTheme = uiState.value.isDark) {
-            AppScaffold(
-                modifier = Modifier
-                    .fillMaxSize(),
-                containerColor = Theme.colors.background.card,
-                content = { San3aNavGraph(navController = navController) },
-                bottomBar = {
-                    var showNavBar by remember { mutableStateOf(false) }
-                    LaunchedEffect(isVisible) {
-                        if (isVisible) {
-                            delay(500)
-                            showNavBar = true
-                        } else {
-                            showNavBar = false
+    LanguageProvider {
+        CompositionLocalProvider(
+            LocalLayoutDirection provides localDirection,
+            LocalConfiguration provides configuration,
+            LocalContext provides localizedContext
+        ) {
+            San3aTheme(isDarkTheme = uiState.value.isDark) {
+                AppScaffold(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    containerColor = Theme.colors.background.card,
+                    content = { San3aNavGraph(navController = navController) },
+                    bottomBar = {
+                        var showNavBar by remember { mutableStateOf(false) }
+                        LaunchedEffect(isVisible) {
+                            if (isVisible) {
+                                delay(500)
+                                showNavBar = true
+                            } else {
+                                showNavBar = false
+                            }
                         }
-                    }
-                    AnimatedVisibility(
-                        visible = showNavBar,
-                        enter = slideInVertically(initialOffsetY = { it }),
-                        exit = slideOutVertically(targetOffsetY = { it }),
-                    ) {
-                        if (showNavBar) {
-                            AppNavigationBar(
-                                destinations = AppNavBarItem.destinations(LocalAccountType.value),
-                                selectedItem = AppNavBarItem.destinations(LocalAccountType.value)
-                                    .getOrNull(selectedDestinationIndex),
-                                onItemClick = { destination ->
-                                    scope.launch {
-                                        navigator.navigate(
-                                            destination,
-                                            navOptions = NavOptions.Builder()
-                                                .setPopUpTo(
-                                                    0,
-                                                    inclusive = true
-                                                ).build()
-                                        )
+                        AnimatedVisibility(
+                            visible = showNavBar,
+                            enter = slideInVertically(initialOffsetY = { it }),
+                            exit = slideOutVertically(targetOffsetY = { it }),
+                        ) {
+                            if (showNavBar) {
+                                AppNavigationBar(
+                                    destinations = AppNavBarItem.destinations(LocalAccountType.value),
+                                    selectedItem = AppNavBarItem.destinations(LocalAccountType.value)
+                                        .getOrNull(selectedDestinationIndex),
+                                    onItemClick = { destination ->
+                                        scope.launch {
+                                            navigator.navigate(
+                                                destination,
+                                                navOptions = NavOptions.Builder()
+                                                    .setPopUpTo(
+                                                        0,
+                                                        inclusive = true
+                                                    ).build()
+                                            )
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
